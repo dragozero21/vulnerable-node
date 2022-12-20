@@ -1,0 +1,27 @@
+name: ZAP-Test
+
+on:
+  push: 
+    branches: [ main ]
+
+jobs: 
+  build: 
+    runs-on: ubuntu-latest
+    steps:
+      - name: IP
+        run: hostname -I
+      - uses: actions/checkout@v2
+      - name: Build Image
+        run: docker-compose build && docker-compose up
+      - name: ZAP build
+        run: docker pull ictu/zap2docker-weekly
+      - name: ZAP Scan
+        run: |
+            docker run --rm -v /tmp:/zap/wrk -t ictu/zap2docker-weekly zap-full-scan.py -I -j -m 10 -T 60 \
+              -t https://172.17.0.1:3000 \
+              -r testreport.html
+            echo "SUSKES"
+      - uses: actions/upload-artifact@v3
+        with:
+          name: my-artifact
+          path: /tmp/testreport.html
